@@ -1,36 +1,9 @@
 #!/bin/sh
 # this script based  https://github.com/fakemanhk/openwrt-jp-ipoe
-# map.sh - IPv4-in-IPv6 tunnel backend
-#
 # Author: Steven Barth <cyrus@openwrt.org>
 # Copyright (c) 2014 cisco Systems, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 2
-# as published by the Free Software Foundation
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-#------------------------------------
-#     Modifications by 'cmspam'
-#------------------------------------
-# These modifications are made to ensure that the multiple port ranges
-# used with Japan's MAP-E implementation are actually SNAT-ed to correctly.
-
-#------------------------------------
-#     Setting to not SNAT to certain ports
-#------------------------------------
-# This is a space-delimited list of ports to not SNAT to.
-# If, for example, you use some ports for servers, it's best to
-# include them here, so that they are not used with SNAT.
-# Port ranges are not supported, so please list each port individually
-# separated with a space.
-# 
 # Example, if you want to not SNAT to 2938, 7088, and 10233
-#
 #DONT_SNAT_TO="2938 7088 10233"
 
 DONT_SNAT_TO="0"
