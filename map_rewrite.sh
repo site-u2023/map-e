@@ -857,10 +857,6 @@ BR=$peeraddr
 # echo debug: $BR
 # echo debug: nxps $nxps lp: $lp pslen: $pslen
 
-# web-config-software
-wget --no-check-certificate -O /www/map-e.html https://raw.githubusercontent.com/site-u2023/config-softwire/main/map-e.html
-
-# map
 sed -i -e "s/ip4prefixlen=32/ip4prefixlen=${ip4prefixlen}/g" /lib/netifd/proto/map.sh
 
 # reboot
