@@ -5,7 +5,7 @@ This README is edited in Japanese.
 
 https://github.com/fakemanhk/openwrt-jp-ipoe#advanced-custom-configuration
 
-高度なカスタム構成を元に以下を変更
+ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
 
 ```diff
 - 		json_add_int mtu "${mtu:-1280}"
