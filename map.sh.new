@@ -30,7 +30,6 @@ proto_map_setup() {
 	# Compatibility with older config: use $type if $maptype is missing
 	[ -z "$maptype" ] && maptype="$type"
 	[ -z "$maptype" ] && maptype="map-e"
-	[ -z "$ip4prefixlen" ] && ip4prefixlen=32
 
 	( proto_add_host_dependency "$cfg" "::" "$tunlink" )
 
