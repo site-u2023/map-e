@@ -5,6 +5,7 @@
 #
 # Example, if you want to not SNAT to 2938, 7088, and 10233
 #DONT_SNAT_TO="2938 7088 10233"
+
 DONT_SNAT_TO="0"
 
 
