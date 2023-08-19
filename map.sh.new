@@ -155,7 +155,7 @@ proto_map_setup() {
 	    local counter=0
 	    
             for proto in icmp tcp udp; do
-                nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
+                nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
             done
 	    #END MODIFICATION 3
 	    
