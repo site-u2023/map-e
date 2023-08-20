@@ -3,7 +3,7 @@ This README is edited in Japanese.
 
 ニチバン対策に map.sh を書き換えます。
 
-元ファイル：
+元情報：
 https://github.com/fakemanhk/openwrt-jp-ipoe#advanced-custom-configuration
 
 ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
