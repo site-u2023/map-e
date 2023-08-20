@@ -11,8 +11,8 @@ ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
 ```diff
 -	[ -z "$ip4prefixlen" ] && ip4prefixlen=32
 
-- 		json_add_int mtu "${mtu:-1280}"
-+ 		json_add_int mtu "${mtu:-1460}"
+- json_add_int mtu "${mtu:-1280}"
++ json_add_int mtu "${mtu:-1460}"
 
 - nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
