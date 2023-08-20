@@ -18,6 +18,6 @@ ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 ```
 
-First draft: 20 Aug 2023
+First draft: 5 Aug 2023
 
 Update: 20 Aug 2023
