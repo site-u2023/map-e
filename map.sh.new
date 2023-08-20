@@ -1,9 +1,21 @@
-#!/bin/sh
 # this script based  https://github.com/fakemanhk/openwrt-jp-ipoe
+#!/bin/sh
+# map.sh - IPv4-in-IPv6 tunnel backend
+#
 # Author: Steven Barth <cyrus@openwrt.org>
 # Copyright (c) 2014 cisco Systems, Inc.
 #
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2
+# as published by the Free Software Foundation
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
 # Example, if you want to not SNAT to 2938, 7088, and 10233
+#
 #DONT_SNAT_TO="2938 7088 10233"
 
 DONT_SNAT_TO="0"
@@ -96,6 +108,7 @@ proto_map_setup() {
 			fi
 		json_close_object
 
+
 		proto_close_tunnel
 	elif [ "$maptype" = "map-t" -a -f "/proc/net/nat46/control" ]; then
 		proto_init_update "$link" 1
@@ -152,13 +165,28 @@ proto_map_setup() {
             nft add table inet mape
             nft add chain inet mape srcnat {type nat hook postrouting priority 0\; policy accept\; }
 
+
 	    local counter=0
 	    
             for proto in icmp tcp udp; do
-                nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
+                nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
             done
-	    #END MODIFICATION 3
 	    
+#            for portset in $(eval "echo \$RULE_${k}_PORTSETS"); do
+#              for proto in icmp tcp udp; do
+#                json_add_object ""
+#                  json_add_string type nat
+#                  json_add_string target SNAT
+#                  json_add_string family inet
+#                  json_add_string proto "$proto"
+#                  json_add_boolean connlimit_ports 1
+#                  json_add_string snat_ip $(eval "echo \$RULE_${k}_IPV4ADDR")
+#                  json_add_string snat_port "$portset"
+#                json_close_object
+#              done
+#            done
+
+
 	  fi
 	  if [ "$maptype" = "map-t" ]; then
 		[ -z "$zone" ] && zone=$(fw3 -q network $iface 2>/dev/null)
