@@ -1,4 +1,4 @@
-# NICHIBAN countermeasures
+# OpenWrt 22.03 23.05 FW4 ニチバン対策 (のみ) 全自動構成 MAP書換版
 This README is edited in Japanese.
 
 ニチバン対策に map.sh を書き換えます。
