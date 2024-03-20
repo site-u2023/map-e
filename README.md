@@ -18,6 +18,17 @@ ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 ```
 
+元情報：
+https://ficusonline.com/ja/Blog/OpenWRT--V6purasuMAP-E~b1236
+
+テーブルを削除する条件文スクリプト if ~ nft delete table inet mape ~fi 追加
+
+```diff
++ if nft list tables | grep -q "table inet mape"; then
++ nft delete table inet mape
++ fi
+```
+
 First draft: 5 Aug 2023
 
-Update: 20 Aug 2023
+Update: 20 March 2024
