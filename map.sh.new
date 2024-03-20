@@ -162,10 +162,6 @@ proto_map_setup() {
 	    done
 	    allports=${allports%??}
 
-	    if nft list tables | grep -q "table inet mape"; then
-            nft delete table inet mape
-            fi
-
             nft add table inet mape
             nft add chain inet mape srcnat {type nat hook postrouting priority 0\; policy accept\; }
 
