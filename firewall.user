@@ -1,0 +1,39 @@
+# This file is interpreted as shell script.
+# Put your custom iptables rules here, they will
+# be executed with each firewall (re-)start.
+
+# Internal uci firewall chains are flushed and recreated on reload, so
+# put custom rules into the root chains e.g. INPUT or FORWARD or into the
+# special user chains, e.g. input_wan_rule or postrouting_lan_rule.
+
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  0 -j MARK --set-mark 10
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  1 -j MARK --set-mark 11
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  2 -j MARK --set-mark 12
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  3 -j MARK --set-mark 13
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  4 -j MARK --set-mark 14
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  5 -j MARK --set-mark 15
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  6 -j MARK --set-mark 16
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  7 -j MARK --set-mark 17
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  8 -j MARK --set-mark 18
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet  9 -j MARK --set-mark 19
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet 10 -j MARK --set-mark 20
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet 11 -j MARK --set-mark 21
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet 12 -j MARK --set-mark 22
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet 13 -j MARK --set-mark 23
+iptables -t nat -A PREROUTING -m statistic --mode nth --every 15 --packet 14 -j MARK --set-mark 24
+
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  0 -j MARK --set-mark 10
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  1 -j MARK --set-mark 11
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  2 -j MARK --set-mark 12
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  3 -j MARK --set-mark 13
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  4 -j MARK --set-mark 14
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  5 -j MARK --set-mark 15
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  6 -j MARK --set-mark 16
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  7 -j MARK --set-mark 17
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  8 -j MARK --set-mark 18
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet  9 -j MARK --set-mark 19
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet 10 -j MARK --set-mark 20
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet 11 -j MARK --set-mark 21
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet 12 -j MARK --set-mark 22
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet 13 -j MARK --set-mark 23
+iptables -t nat -A OUTPUT -m statistic --mode nth --every 15 --packet 14 -j MARK --set-mark 24
