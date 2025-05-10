@@ -15,7 +15,7 @@ ADVANCED CUSTOM CONFIGURATIONを元に以下を変更
 + json_add_int mtu "${mtu:-1460}"
 
 - nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
-+ nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
++ nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter packets 0 bytes 0 snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "MAP-E $proto SNAT on map-$cfg with PSID port-mapping"
 ```
 
 First draft: 5 Aug 2023
