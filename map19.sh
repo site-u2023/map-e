@@ -26,7 +26,7 @@ proto_map_setup() {
 	local link="map-$cfg"
 
 	# uncomment for legacy MAP0 mode
-	export LEGACY=1
+	#export LEGACY=1
 
 	local type mtu ttl tunlink zone encaplimit
 	local rule ipaddr ip4prefixlen ip6prefix ip6prefixlen peeraddr ealen psidlen psid offset
@@ -79,7 +79,7 @@ proto_map_setup() {
 
 		proto_add_tunnel
 		json_add_string mode ipip6
-		json_add_int mtu "${mtu:-1460}"
+		json_add_int mtu "${mtu:-1280}"
 		json_add_int ttl "${ttl:-64}"
 		json_add_string local $(eval "echo \$RULE_${k}_IPV6ADDR")
 		json_add_string remote $(eval "echo \$RULE_${k}_BR")
