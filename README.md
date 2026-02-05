@@ -1,7 +1,7 @@
-# OpenWrt 22.03 23.05 FW4 ニチバン対策 (のみ) 全自動構成 MAP書換版
+# OpenWrt マルチセッション (ニチバンベンチ)対策 MAP書換版
 This README is edited in Japanese.
 
-ニチバン対策に map.sh を書き換えます。
+マルチセッション対策に map.sh を書き換えます
 
 元情報：
 https://github.com/fakemanhk/openwrt-jp-ipoe#advanced-custom-configuration
