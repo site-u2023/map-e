@@ -148,7 +148,7 @@ proto_map_setup() {
 	      json_add_string family inet
 	      json_add_string snat_ip $(eval "echo \$RULE_${k}_IPV4ADDR")
 	    json_close_object
-	  elif command -v nft >/dev/null 2>&1; then
+	  elif [ -x /sbin/fw4 ]; then
 	    # fw4 (nftables): numgen round-robin across all ports
 	    local portcount=0
 	    local allports=""
@@ -217,7 +217,7 @@ proto_map_setup() {
 	fi
 
 	# fw3 (iptables): nth round-robin SNAT after fw3 finishes processing
-	if ! command -v nft >/dev/null 2>&1 && [ -n "$(eval "echo \$RULE_${k}_PORTSETS")" ]; then
+	if [ ! -x /sbin/fw4 ] && [ -n "$(eval "echo \$RULE_${k}_PORTSETS")" ]; then
 		local _cfg="$cfg"
 		local _ipv4addr=$(eval "echo \$RULE_${k}_IPV4ADDR")
 		local _portsets=$(eval "echo \$RULE_${k}_PORTSETS")
@@ -267,7 +267,7 @@ proto_map_teardown() {
 	esac
 
 	# Clean up SNAT rules
-	if command -v nft >/dev/null 2>&1; then
+	if [ -x /sbin/fw4 ]; then
 		nft delete table inet mape 2>/dev/null
 	else
 		iptables -t nat -D POSTROUTING -o map-$cfg -j mape_snat 2>/dev/null
