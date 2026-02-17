@@ -250,6 +250,27 @@ proto_map_setup() {
 			iptables -t nat -I POSTROUTING -o map-$_cfg -j mape_snat
 		) &
 	fi
+
+	# Nichibann countermeasures: DSCP reset to CS0
+	if [ -x /sbin/fw4 ]; then
+		nft add table inet mape_dscp 2>/dev/null
+		nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle \; policy accept \; }
+		nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
+		nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
+	else
+		iptables  -t mangle -C POSTROUTING -j DSCP --set-dscp 0 2>/dev/null || \
+		iptables  -t mangle -A POSTROUTING -j DSCP --set-dscp 0
+		ip6tables -t mangle -C POSTROUTING -j DSCP --set-dscp 0 2>/dev/null || \
+		ip6tables -t mangle -A POSTROUTING -j DSCP --set-dscp 0
+	fi
+
+	# Nichibann countermeasures: conntrack timeout tuning for MAP-E port conservation
+	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=3600 >/dev/null 2>&1
+	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_time_wait=120 >/dev/null 2>&1
+	sysctl -w net.netfilter.nf_conntrack_udp_timeout=180 >/dev/null 2>&1
+	sysctl -w net.netfilter.nf_conntrack_udp_timeout_stream=180 >/dev/null 2>&1
+	sysctl -w net.netfilter.nf_conntrack_icmp_timeout=60 >/dev/null 2>&1
+	sysctl -w net.netfilter.nf_conntrack_generic_timeout=60 >/dev/null 2>&1
 }
 
 proto_map_teardown() {
@@ -273,6 +294,14 @@ proto_map_teardown() {
 		iptables -t nat -D POSTROUTING -o map-$cfg -j mape_snat 2>/dev/null
 		iptables -t nat -F mape_snat 2>/dev/null
 		iptables -t nat -X mape_snat 2>/dev/null
+	fi
+
+	# Clean up DSCP reset rules
+	if [ -x /sbin/fw4 ]; then
+		nft delete table inet mape_dscp 2>/dev/null
+	else
+		iptables  -t mangle -D POSTROUTING -j DSCP --set-dscp 0 2>/dev/null
+		ip6tables -t mangle -D POSTROUTING -j DSCP --set-dscp 0 2>/dev/null
 	fi
 
 	rm -f /tmp/map-$cfg.rules
