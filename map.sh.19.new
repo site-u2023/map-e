@@ -15,12 +15,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# Example, if you want to not SNAT to 2938, 7088, and 10233
-#
-#DONT_SNAT_TO="2938 7088 10233"
-
-DONT_SNAT_TO="0"
-
 
 [ -n "$INCLUDE_ONLY" ] || {
 	. /lib/functions.sh
