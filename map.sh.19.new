@@ -247,8 +247,8 @@ proto_map_setup() {
 	ip6tables -t mangle -A POSTROUTING -j DSCP --set-dscp 0
 
 	# Nichibann countermeasures: TCPMSS clamp to PMTU
-	iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
-	iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+	iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
+	iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu
 
 	# Nichibann countermeasures: conntrack timeout tuning for MAP-E port conservation
 	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=3600 >/dev/null 2>&1
@@ -283,7 +283,7 @@ proto_map_teardown() {
 	ip6tables -t mangle -D POSTROUTING -j DSCP --set-dscp 0 2>/dev/null
 
 	# Clean up TCPMSS clamp rule
-	iptables -t mangle -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+	iptables -t mangle -D FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
 
 	rm -f /tmp/map-$cfg.rules
 }
