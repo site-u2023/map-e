@@ -64,8 +64,25 @@ proto_map_setup() {
 		fi
 	fi
 
+	# BMR as first rule, then append any FMR rules from UCI list
+	local all_rules="$rule"
+	local fmr_list=""
+	fmr_list=$(uci -q get network.${cfg}.fmr_rule)
+	for fmr_entry in $fmr_list; do
+		local fmr_ip6prefix=$(echo $fmr_entry | cut -d',' -f1)
+		local fmr_ip4prefix=$(echo $fmr_entry | cut -d',' -f2)
+		local fmr_ealen=$(echo $fmr_entry | cut -d',' -f3)
+		local fmr_offset=$(echo $fmr_entry | cut -d',' -f4)
+		local fmr_prefix6len=$(echo $fmr_ip6prefix | cut -d'/' -f2)
+		local fmr_prefix4len=$(echo $fmr_ip4prefix | cut -d'/' -f2)
+		fmr_ip6prefix=$(echo $fmr_ip6prefix | cut -d'/' -f1)
+		fmr_ip4prefix=$(echo $fmr_ip4prefix | cut -d'/' -f1)
+		local fmr_rule="type=$maptype,ipv6prefix=$fmr_ip6prefix,prefix6len=$fmr_prefix6len,ipv4prefix=$fmr_ip4prefix,prefix4len=$fmr_prefix4len,ealen=$fmr_ealen,offset=$fmr_offset,psidlen=$psidlen,fmr=1"
+		all_rules="$all_rules $fmr_rule"
+	done
+
 	echo "rule=$rule" > /tmp/map-$cfg.rules
-	RULE_DATA=$(LEGACY="$legacymap" mapcalc ${tunlink:-\*} $rule)
+	RULE_DATA=$(LEGACY="$legacymap" mapcalc ${tunlink:-\*} $all_rules)
 	if [ "$?" != 0 ]; then
 		proto_notify_error "$cfg" "INVALID_MAP_RULE"
 		proto_block_restart "$cfg"
@@ -313,6 +330,7 @@ proto_map_init_config() {
 
 	proto_config_add_string "maptype"
 	proto_config_add_string "rule"
+	config_add_array "fmr_rule"
 	proto_config_add_string "ipaddr"
 	proto_config_add_int "ip4prefixlen"
 	proto_config_add_string "ip6prefix"
