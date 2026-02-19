@@ -285,7 +285,7 @@ proto_map_setup() {
 	if [ -x /sbin/fw4 ]; then
 		nft add table inet mape_tcpmss 2>/dev/null
 		nft add chain inet mape_tcpmss forward { type filter hook forward priority mangle \; policy accept \; }
-		nft add rule inet mape_tcpmss forward tcp flags syn / syn,rst tcp option maxseg size set rt mtu comment \"mape-tcpmss\"
+		nft add rule inet mape_tcpmss forward oifname "map-$cfg" tcp flags syn / syn,rst tcp option maxseg size set rt mtu comment \"mape-tcpmss\"
 	else
 		iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
 		iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
