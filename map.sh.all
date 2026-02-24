@@ -165,8 +165,8 @@ proto_map_setup() {
 	      json_add_string family inet
 	      json_add_string snat_ip $(eval "echo \$RULE_${k}_IPV4ADDR")
 	    json_close_object
-	  elif [ -x /sbin/fw4 ]; then
-	    # fw4 (nftables): numgen round-robin across all ports
+	  else
+	    # nftables: numgen round-robin across all ports
 	    local portcount=0
 	    local allports=""
 	    for portset in $(eval "echo \$RULE_${k}_PORTSETS"); do
@@ -188,9 +188,8 @@ proto_map_setup() {
 		nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "mape-snat-${proto}"
 	    done
 	  fi
-	  # fw3 (iptables): SNAT rules added after proto_send_update via background task
 	  if [ "$maptype" = "map-t" ]; then
-		[ -z "$zone" ] && zone=$(fw3 -q network $iface 2>/dev/null)
+		[ -z "$zone" ] && zone=$(fw4 -q zone $iface 2>/dev/null)
 
 		[ -n "$zone" ] && {
 			json_add_object ""
@@ -233,65 +232,18 @@ proto_map_setup() {
 		ubus call network add_dynamic "$(json_dump)"
 	fi
 
-	# fw3 (iptables): nth round-robin SNAT after fw3 finishes processing
-	if [ ! -x /sbin/fw4 ] && [ -n "$(eval "echo \$RULE_${k}_PORTSETS")" ]; then
-		local _cfg="$cfg"
-		local _ipv4addr=$(eval "echo \$RULE_${k}_IPV4ADDR")
-		local _portsets=$(eval "echo \$RULE_${k}_PORTSETS")
-		(
-			sleep 5
+	# Nichiban countermeasures: DSCP reset to CS0
+	nft add table inet mape_dscp 2>/dev/null
+	nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle \; policy accept \; }
+	nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
+	nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
 
-			iptables -t nat -N mape_snat 2>/dev/null
-			iptables -t nat -F mape_snat
+	# Nichiban countermeasures: TCPMSS clamp to PMTU
+	nft add table inet mape_tcpmss 2>/dev/null
+	nft add chain inet mape_tcpmss forward { type filter hook forward priority mangle \; policy accept \; }
+	nft add rule inet mape_tcpmss forward oifname "map-$cfg" tcp flags syn / syn,rst tcp option maxseg size set rt mtu comment \"mape-tcpmss\"
 
-			portset_count=0
-			for portset in $_portsets; do
-				portset_count=$((portset_count + 1))
-			done
-
-			remaining=$portset_count
-			for portset in $_portsets; do
-				if [ $remaining -eq 1 ]; then
-					for proto in icmp tcp udp; do
-						iptables -t nat -A mape_snat -p $proto -j SNAT --to $_ipv4addr:$portset
-					done
-				else
-					for proto in icmp tcp udp; do
-						iptables -t nat -A mape_snat -p $proto -m statistic --mode nth --every $remaining --packet 0 -j SNAT --to $_ipv4addr:$portset
-					done
-				fi
-				remaining=$((remaining - 1))
-			done
-
-			iptables -t nat -C POSTROUTING -o map-$_cfg -j mape_snat 2>/dev/null || \
-			iptables -t nat -I POSTROUTING -o map-$_cfg -j mape_snat
-		) &
-	fi
-
-	# Nichibann countermeasures: DSCP reset to CS0
-	if [ -x /sbin/fw4 ]; then
-		nft add table inet mape_dscp 2>/dev/null
-		nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle \; policy accept \; }
-		nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
-		nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
-	else
-		iptables  -t mangle -C POSTROUTING -j DSCP --set-dscp 0 2>/dev/null || \
-		iptables  -t mangle -A POSTROUTING -j DSCP --set-dscp 0
-		ip6tables -t mangle -C POSTROUTING -j DSCP --set-dscp 0 2>/dev/null || \
-		ip6tables -t mangle -A POSTROUTING -j DSCP --set-dscp 0
-	fi
-
-	# Nichibann countermeasures: TCPMSS clamp to PMTU
-	if [ -x /sbin/fw4 ]; then
-		nft add table inet mape_tcpmss 2>/dev/null
-		nft add chain inet mape_tcpmss forward { type filter hook forward priority mangle \; policy accept \; }
-		nft add rule inet mape_tcpmss forward oifname "map-$cfg" tcp flags syn / syn,rst tcp option maxseg size set rt mtu comment \"mape-tcpmss\"
-	else
-		iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
-		iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu
-	fi
-
-	# Nichibann countermeasures: conntrack timeout tuning for MAP-E port conservation
+	# Nichiban countermeasures: conntrack timeout tuning for MAP-E port conservation
 	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=3600 >/dev/null 2>&1
 	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_time_wait=120 >/dev/null 2>&1
 	sysctl -w net.netfilter.nf_conntrack_udp_timeout=180 >/dev/null 2>&1
@@ -315,28 +267,13 @@ proto_map_teardown() {
 	esac
 
 	# Clean up SNAT rules
-	if [ -x /sbin/fw4 ]; then
-		nft delete table inet mape 2>/dev/null
-	else
-		iptables -t nat -D POSTROUTING -o map-$cfg -j mape_snat 2>/dev/null
-		iptables -t nat -F mape_snat 2>/dev/null
-		iptables -t nat -X mape_snat 2>/dev/null
-	fi
+	nft delete table inet mape 2>/dev/null
 
 	# Clean up DSCP reset rules
-	if [ -x /sbin/fw4 ]; then
-		nft delete table inet mape_dscp 2>/dev/null
-	else
-		iptables  -t mangle -D POSTROUTING -j DSCP --set-dscp 0 2>/dev/null
-		ip6tables -t mangle -D POSTROUTING -j DSCP --set-dscp 0 2>/dev/null
-	fi
+	nft delete table inet mape_dscp 2>/dev/null
 
 	# Clean up TCPMSS clamp rule
-	if [ -x /sbin/fw4 ]; then
-		nft delete table inet mape_tcpmss 2>/dev/null
-	else
-		iptables -t mangle -D FORWARD -p tcp --tcp-flags SYN,RST SYN -o map-$cfg -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
-	fi
+	nft delete table inet mape_tcpmss 2>/dev/null
 
 	rm -f /tmp/map-$cfg.rules
 }
