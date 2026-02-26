@@ -42,7 +42,7 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 | | 使用ポート数 | 詰まりやすさ |
 |---|---|---|
 | デフォルト | 先頭16ポート | 多少詰まりにくい |
-| map.sh.new | 1008ポート均等分散 | 実用上問題なし |
+| map.sh.new | 全割り当てポート均等分散（240または1008ポート） | 実用上問題なし |
 
 **TCP/UDP/ICMP分散**
 
