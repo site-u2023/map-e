@@ -65,11 +65,14 @@ DONT_SNAT_TO="0"
 
 ### map.sh.newをベースに機能追加・修正
 
-**MTU修正など**
+**MTU修正**
 ```diff
 - json_add_int mtu "${mtu:-1280}"
 + json_add_int mtu "${mtu:-1460}"
+```
 
+**カウンター追加**
+```diff
 - nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "mape-snat-${proto}"
 ```
