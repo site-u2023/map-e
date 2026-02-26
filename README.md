@@ -208,10 +208,15 @@ echo "正常: $CHECK_OK / 異常: $CHECK_NG"
 
 ### ブラウザ動作確認
 
-URL
 - [nichiban.co.jp](https://www.nichiban.co.jp/)
 
 - [soyabus.co.jp](http://www.soyabus.co.jp/)
+
+### Qiita
+
+- [OpenWrt IPoE設定 MAP-e(OCNバーチャルコネクト・V6プラス・NURO光 ニチバン対策) DS-LITE(Transix・Xpass・v6コネクト)](https://qiita.com/site_u/items/ec3099bd0d675d47fa98)
+
+---
 
 First draft: 5 Aug 2023
 
