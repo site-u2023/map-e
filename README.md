@@ -33,7 +33,6 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 
 ## [map.sh.new](https://github.com/fakemanhk/openwrt-jp-ipoe/blob/main/map.sh.new)
 
-元情報：
 [Configuring OpenWrt to work with Japan NTT IPv6 (MAP-E) service](https://github.com/fakemanhk/openwrt-jp-ipoe#advanced-custom-configuration)
 
 ### マルチセッション対策に`map.sh`を書き換え
