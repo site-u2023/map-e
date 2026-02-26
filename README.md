@@ -46,13 +46,26 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 
 **TCP/UDP/ICMP分散**
 
-`numgen inc mod`（全割り当てポートを均等ラウンドロビン）
+> `numgen inc mod`（全割り当てポートを均等ラウンドロビン）
 
 **ポート計算**
 
-nftablesで処理
+> nftablesで処理
 
-map.sh.newを元に以下を変更
+**DONT_SNAT_TO**
+
+> サーバー等で使用中のポートをSNAT対象から除外できる
+
+```sh
+#DONT_SNAT_TO="2938 7088 10233"
+DONT_SNAT_TO="0"
+```
+
+## [map.sh.all](https://github.com/site-u2023/map-e/blob/main/map.sh.all)
+
+### map.sh.newをベースに機能追加・修正
+
+**MTU修正など**
 ```diff
 - json_add_int mtu "${mtu:-1280}"
 + json_add_int mtu "${mtu:-1460}"
@@ -60,10 +73,6 @@ map.sh.newを元に以下を変更
 - nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "mape-snat-${proto}"
 ```
-
-## [map.sh.all](https://github.com/site-u2023/map-e/blob/main/map.sh.all)
-
-### map.sh.newをベースに機能追加
 
 **DSCPリセット（CS0）**
 > ニチバン対策。IPv4/IPv6両方のDSCPをCS0にリセット
