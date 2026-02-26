@@ -158,7 +158,7 @@ set firewall.block_quic_mape.family='ipv4'
 set firewall.block_quic_mape.enabled='1'
 commit firewall
 EOF
-echo "何かキーを押すとサービスを再起動します"
+echo "Enterキーを押すとサービスを再起動します"
 read dummy </dev/tty
 for s in network firewall dnsmasq odhcpd ttyd; do /etc/init.d/$s restart 2>/dev/null; done
 echo "完了しました"
