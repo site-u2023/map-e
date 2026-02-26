@@ -20,7 +20,7 @@ This README is edited in Japanese.
 wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/package/network/ipv6/map/files/map.sh | sha1sum
 ```
 
-## ニチバン
+## ニチバンベンチ
 
 **ニチバンベンチとは**
 > [ニチバン株式会社の公式サイト](https://www.nichiban.co.jp/)は、大量の小さなファイルを同時セッションで配信する構造のため、OpenWrtのMAP-E環境でNATポート枯渇を引き起こしやすい
