@@ -71,7 +71,7 @@ map.sh.newを元に以下を変更
 ip dscp set cs0
 ip6 dscp set cs0
 ```
-> `/etc/nftables.d/10-dscp-zero.nft` として常時適用
+> `inet mape_dscp` テーブルとして動的に適用（teardown時に削除）
 
 **TCPMSSクランプ（PMTU自動調整）**
 > ipip6トンネルのMTU制限によるフラグメント発生を防止
