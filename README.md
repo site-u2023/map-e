@@ -76,6 +76,28 @@ DONT_SNAT_TO="0"
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "mape-snat-${proto}"
 ```
 
+**インターフェース存在チェック修正**
+```diff
+- [ "$maptype" = lw4o6 ] && sleep 5
++ # Replaced fixed sleep 5 with ubus wait_for on upstream interface
++  if [ "$maptype" = "lw4o6" ]; then
++     if [ -z "$tunlink" ]; then
++         proto_notify_error "$cfg" "TUNLINK_UNDEFINED_FOR_LW4O6"
++         return 1
++     fi
++ 
++     if ! ubus wait_for "network.interface.${tunlink}" 15; then
++         proto_notify_error "$cfg" "WAN6_INTERFACE_TIMEOUT"
++         return 1
++     fi
++ fi
+```
+
+**local maptype 宣言**
+```diff
++ json_get_var maptype maptype
+```
+
 **DSCPリセット（CS0）**
 > ニチバン対策。IPv4/IPv6両方のDSCPをCS0にリセット
 ```sh
@@ -103,8 +125,8 @@ nft delete table inet mape_tcpmss
 ```sh
 net.netfilter.nf_conntrack_tcp_timeout_established=3600
 net.netfilter.nf_conntrack_tcp_timeout_time_wait=120
-net.netfilter.nf_conntrack_udp_timeout=180
-net.netfilter.nf_conntrack_udp_timeout_stream=180
+net.netfilter.nf_conntrack_udp_timeout=120
+net.netfilter.nf_conntrack_udp_timeout_stream=120
 net.netfilter.nf_conntrack_icmp_timeout=60
 net.netfilter.nf_conntrack_generic_timeout=60
 ```
