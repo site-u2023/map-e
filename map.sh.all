@@ -243,18 +243,13 @@ proto_map_setup() {
 		ubus call network add_dynamic "$(json_dump)"
 	fi
 
-	# Nichiban countermeasures: DSCP reset to CS0
+	# DSCP reset to CS0 (NTT QoS bandwidth throttle avoidance)
 	nft add table inet mape_dscp 2>/dev/null
 	nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle \; policy accept \; }
 	nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
 	nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
 
-	# Nichiban countermeasures: TCPMSS clamp to PMTU
-	nft add table inet mape_tcpmss 2>/dev/null
-	nft add chain inet mape_tcpmss forward { type filter hook forward priority mangle \; policy accept \; }
-	nft add rule inet mape_tcpmss forward oifname "map-$cfg" tcp flags syn / syn,rst tcp option maxseg size set rt mtu comment \"mape-tcpmss\"
-
-	# Nichiban countermeasures: conntrack timeout tuning for MAP-E port conservation
+	# conntrack timeout tuning for MAP-E port conservation
 	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=3600 >/dev/null 2>&1
 	sysctl -w net.netfilter.nf_conntrack_tcp_timeout_time_wait=120 >/dev/null 2>&1
 	sysctl -w net.netfilter.nf_conntrack_udp_timeout=120 >/dev/null 2>&1
@@ -283,9 +278,6 @@ proto_map_teardown() {
 
 	# Clean up DSCP reset rules
 	nft delete table inet mape_dscp 2>/dev/null
-
-	# Clean up TCPMSS clamp rule
-	nft delete table inet mape_tcpmss 2>/dev/null
 
 	rm -f /tmp/map-$cfg.rules
 }
