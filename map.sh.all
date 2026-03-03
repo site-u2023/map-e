@@ -181,6 +181,7 @@ proto_map_setup() {
 	    done
 	    allports=${allports%??}
 
+			nft delete table inet mape 2>/dev/null
             nft add table inet mape
             nft add chain inet mape srcnat {type nat hook postrouting priority 0\; policy accept\; }
 
@@ -233,7 +234,8 @@ proto_map_setup() {
 	fi
 
 	# DSCP reset to CS0 (NTT QoS bandwidth throttle avoidance)
-	nft add table inet mape_dscp 2>/dev/null
+	nft delete table inet mape_dscp 2>/dev/null
+	nft add table inet mape_dscp
 	nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle \; policy accept \; }
 	nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
 	nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
