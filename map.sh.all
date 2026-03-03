@@ -49,8 +49,19 @@ proto_map_setup() {
 	( proto_add_host_dependency "$cfg" "::" "$tunlink" )
 
 	# fixme: handle RA/DHCPv6 address race for LW
-	[ "$maptype" = lw4o6 ] && sleep 5
+	# Replaced fixed sleep 5 with ubus wait_for on upstream interface
+	if [ "$maptype" = "lw4o6" ]; then
+    	if [ -z "$tunlink" ]; then
+        	proto_notify_error "$cfg" "TUNLINK_UNDEFINED_FOR_LW4O6"
+        	return 1
+    	fi
 
+    	if ! ubus wait_for "network.interface.${tunlink}" 15; then
+        	proto_notify_error "$cfg" "WAN6_INTERFACE_TIMEOUT"
+        	return 1
+    	fi
+	fi
+	
 	if [ -z "$rule" ]; then
 		rule="type=$maptype,ipv6prefix=$ip6prefix,prefix6len=$ip6prefixlen,ipv4prefix=$ipaddr,prefix4len=$ip4prefixlen"
 		[ -n "$psid" ] && rule="$rule,psid=$psid"
@@ -256,6 +267,7 @@ proto_map_teardown() {
 	local cfg="$1"
 	local link="map-$cfg"
 
+	json_get_var maptype maptype
 	json_get_var type type
 
 	[ -z "$maptype" ] && maptype="$type"
