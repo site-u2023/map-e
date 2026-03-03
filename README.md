@@ -76,24 +76,7 @@ DONT_SNAT_TO="0"
 + nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" counter snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports } comment "mape-snat-${proto}"
 ```
 
-**インターフェース存在チェック修正**
-```diff
-- [ "$maptype" = lw4o6 ] && sleep 5
-+ # Replaced fixed sleep 5 with ubus wait_for on upstream interface
-+  if [ "$maptype" = "lw4o6" ]; then
-+     if [ -z "$tunlink" ]; then
-+         proto_notify_error "$cfg" "TUNLINK_UNDEFINED_FOR_LW4O6"
-+         return 1
-+     fi
-+ 
-+     if ! ubus wait_for "network.interface.${tunlink}" 15; then
-+         proto_notify_error "$cfg" "WAN6_INTERFACE_TIMEOUT"
-+         return 1
-+     fi
-+ fi
-```
-
-**local maptype 宣言**
+**local maptype 宣言（バグ修正）**
 ```diff
 + json_get_var maptype maptype
 ```
@@ -106,18 +89,10 @@ ip6 dscp set cs0
 ```
 > `inet mape_dscp` テーブルとして動的に適用（teardown時に削除）
 
-**TCPMSSクランプ（PMTU自動調整）**
-> ipip6トンネルのMTU制限によるフラグメント発生を防止
-> TCP接続確立時にMSSをPMTUに合わせて自動調整
-```sh
-oifname "map-$cfg" tcp flags syn / syn,rst tcp option maxseg size set rt mtu
-```
-
 **teardown時にクリーンアップ**
 ```sh
 nft delete table inet mape
 nft delete table inet mape_dscp
-nft delete table inet mape_tcpmss
 ```
 
 **conntrackタイムアウトチューニング**
@@ -212,14 +187,13 @@ check_sysctl() {
     [ "$val" = "$2" ] && ok "$1=$val" || ng "$1=$val (期待値: $2)"
 }
 
-nft list table inet mape_tcpmss >/dev/null 2>&1 && ok "mape_tcpmss" || ng "mape_tcpmss: テーブルなし"
 nft list table inet mape_dscp >/dev/null 2>&1 && ok "mape_dscp" || ng "mape_dscp: テーブルなし"
 nft list table inet mape >/dev/null 2>&1 && ok "mape SNAT" || ng "mape SNAT: テーブルなし"
 
 check_sysctl net.netfilter.nf_conntrack_tcp_timeout_established 3600
 check_sysctl net.netfilter.nf_conntrack_tcp_timeout_time_wait 120
-check_sysctl net.netfilter.nf_conntrack_udp_timeout 180
-check_sysctl net.netfilter.nf_conntrack_udp_timeout_stream 180
+check_sysctl net.netfilter.nf_conntrack_udp_timeout 120
+check_sysctl net.netfilter.nf_conntrack_udp_timeout_stream 120
 check_sysctl net.netfilter.nf_conntrack_icmp_timeout 60
 check_sysctl net.netfilter.nf_conntrack_generic_timeout 60
 
