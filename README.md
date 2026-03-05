@@ -52,8 +52,7 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 | ファイル | 役割 | タイミング |
 |---|---|---|
 | `/etc/init.d/mape-patch` | map.sh portsetループ無効化 | START=19（netifd起動前） |
-| `/etc/hotplug.d/iface/99-mape-snat` | numgen SNAT + DSCPリセット | mape ifup後 |
-| `/etc/sysctl.d/99-mape-conntrack.conf` | conntrackチューニング | boot時自動読込 |
+| `/etc/hotplug.d/iface/99-mape-snat` | numgen SNAT + DSCPリセット + conntrack | mape ifup後 |
 
 <details><summary><b>対策内容</b></summary>
 
@@ -177,7 +176,6 @@ ng() { echo "異常: $1"; NG=$((NG+1)); }
 grep -q 'for portset in _; do continue' /lib/netifd/proto/map.sh 2>/dev/null && ok "map.sh パッチ適用済み" || ng "map.sh 未パッチ"
 [ -x /etc/init.d/mape-patch ] && ok "init.d/mape-patch" || ng "init.d/mape-patch 未配置"
 [ -x /etc/hotplug.d/iface/99-mape-snat ] && ok "hotplug/99-mape-snat" || ng "hotplug/99-mape-snat 未配置"
-[ -f /etc/sysctl.d/99-mape-conntrack.conf ] && ok "sysctl/99-mape-conntrack.conf" || ng "sysctl 未配置"
 
 NUMGEN=$(nft list table inet mape 2>/dev/null | grep -c numgen)
 [ "$NUMGEN" -ge 3 ] && ok "numgen SNAT ${NUMGEN}本" || ng "numgen SNAT ${NUMGEN}本 (期待: 3)"
