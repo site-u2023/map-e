@@ -99,16 +99,6 @@ set firewall.block_quic_mape.enabled='1'
 commit firewall
 EOF
 
-cat > /etc/sysctl.d/99-mape-conntrack.conf << 'EOF'
-net.netfilter.nf_conntrack_tcp_timeout_established=3600
-net.netfilter.nf_conntrack_tcp_timeout_time_wait=120
-net.netfilter.nf_conntrack_udp_timeout=120
-net.netfilter.nf_conntrack_udp_timeout_stream=120
-net.netfilter.nf_conntrack_icmp_timeout=60
-net.netfilter.nf_conntrack_generic_timeout=60
-EOF
-sysctl -p /etc/sysctl.d/99-mape-conntrack.conf
-
 mkdir -p /etc/hotplug.d/iface
 cat > /etc/hotplug.d/iface/99-mape-snat << 'HOTPLUG'
 #!/bin/sh
@@ -133,6 +123,12 @@ cat > /etc/hotplug.d/iface/99-mape-snat << 'HOTPLUG'
     nft add chain inet mape_dscp postrouting { type filter hook postrouting priority mangle\; policy accept\; }
     nft add rule inet mape_dscp postrouting ip dscp set cs0 comment \"mape-dscp-reset-v4\"
     nft add rule inet mape_dscp postrouting ip6 dscp set cs0 comment \"mape-dscp-reset-v6\"
+    sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=3600 \
+        net.netfilter.nf_conntrack_tcp_timeout_time_wait=120 \
+        net.netfilter.nf_conntrack_udp_timeout=120 \
+        net.netfilter.nf_conntrack_udp_timeout_stream=120 \
+        net.netfilter.nf_conntrack_icmp_timeout=60 \
+        net.netfilter.nf_conntrack_generic_timeout=60 >/dev/null 2>&1
 }
 [ "$ACTION" = "ifdown" ] && [ "$INTERFACE" = "mape" ] && {
     nft delete table inet mape 2>/dev/null
@@ -154,6 +150,45 @@ chmod +x /etc/init.d/mape-patch
 /etc/init.d/mape-patch start
 
 echo "設定が完了しました"
+echo "Enterキーを押すとサービスを再起動します"
+read dummy </dev/tty
+for s in network firewall dnsmasq odhcpd ttyd; do /etc/init.d/$s restart 2>/dev/null; done
+echo "完了しました"
+)
+```
+
+---
+
+</details>
+
+<details><summary><b>削除</b></summary>
+
+```sh
+#!/bin/sh
+(
+# hotplug削除
+rm -f /etc/hotplug.d/iface/99-mape-snat
+
+# init.d削除
+/etc/init.d/mape-patch disable 2>/dev/null
+rm -f /etc/init.d/mape-patch
+
+# map.sh復元（romfsから）
+cp /rom/lib/netifd/proto/map.sh /lib/netifd/proto/map.sh 2>/dev/null
+
+# nftテーブル削除
+nft delete table inet mape 2>/dev/null
+nft delete table inet mape_dscp 2>/dev/null
+
+# legacymap削除
+uci -q delete network.mape.legacymap
+uci commit network
+
+# Block-QUIC削除
+uci -q delete firewall.block_quic_mape
+uci commit firewall
+
+echo "削除完了"
 echo "Enterキーを押すとサービスを再起動します"
 read dummy </dev/tty
 for s in network firewall dnsmasq odhcpd ttyd; do /etc/init.d/$s restart 2>/dev/null; done
