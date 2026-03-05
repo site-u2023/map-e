@@ -1,4 +1,4 @@
-# OpenWrt マルチセッション (ニチバンベンチ)対策 MAP書換版
+# OpenWrt マルチセッション (ニチバンベンチ)対策 ホットプラグ適用方式
 
 This README is edited in Japanese.
 
