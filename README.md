@@ -55,6 +55,7 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 | `/etc/hotplug.d/iface/99-mape-snat` | numgen SNAT + DSCPリセット + conntrack | mape ifup後 |
 
 起動シーケンス
+```
 ブート
  └─ START=19 mape-patch start()
      ├─ map.sh portsetループを無効化（sed）
@@ -64,6 +65,7 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
                  ├─ numgen SNAT構築（全ポート均等分散）
                  ├─ DSCPリセット（CS0）
                  └─ conntrackタイムアウト短縮
+```
 
 有効・無効の切り替え
 ```sh
