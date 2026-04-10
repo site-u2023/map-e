@@ -1,3 +1,70 @@
+# OpenWrt マルチセッション (ニチバンベンチ)対策 ホットプラグ適用方式
+
+This README is edited in Japanese.
+
+### ニチバン対策（ホットプラグ適用方式）
+
+<details><summary><b>ニチバンベンチについて</b></summary>
+
+**ニチバンベンチとは**
+> [ニチバン株式会社の公式サイト](https://www.nichiban.co.jp/)は、大量の小さなファイルを同時セッションで配信する構造のため、OpenWrtのMAP-E環境でNATポート枯渇を引き起こしやすい
+> このサイトを10窓程度でリロードすることでポート枯渇問題を簡易的に再現できることから、「ニチバンベンチ」と呼ばれるようになった
+
+**ニチバン（SNATポート枯渇）対策とは**
+> OpenWrtのmap.shが複数セッション確立時にSNATテーブルの競合によってポート枯渇エラー（SNAT failed）を引き起こす問題に対処することをいう
+
+※ニチバン株式会社及びそのサービスに問題があるわけではなく、OpenWrtのMAP-E環境側の制約による現象です
+
+---
+
+</details>
+
+<details><summary><b>map.shについて</b></summary>
+
+> mapパッケージに付属してる
+> MAP-E方式をサポートするネットワーク設定スクリプト
+> 19.07まではFW3対応、21.02以降FW4対応となった
+
+**sha1sum map-19.07.sh**
+- 431ad78fc976b70c53cdc5adc4e09b3eb91fd97f  map-19.07.sh
+
+**sha1sum map-21.02.sh ～ map-25.12.sh**
+- 7f0682eeaf2dd7e048ff1ad1dbcc5b913ceb8de4  map-21.02.sh ～ map-25.12.sh
+
+```sh
+wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/package/network/ipv6/map/files/map.sh | sha1sum
+```
+
+**問題点**
+
+[MAP-Eはfw4/nftablesと互換性がありません #11972](https://github.com/openwrt/openwrt/issues/11972)
+
+[MAP-T が割り当てられたポート範囲全体を活用しない #14449](https://github.com/openwrt/openwrt/issues/14449)
+
+---
+
+</details>
+
+### ホットプラグ適用方式
+
+> `attendedsysupgrade` (`owut`)でmap.shが上書きされる為、ホットプラグ適用方式に変更
+
+| ファイル | 役割 | タイミング |
+|---|---|---|
+| `/etc/init.d/mape-patch` | map.sh portsetループ無効化 | START=19（netifd起動前） |
+| `/etc/hotplug.d/iface/99-mape-snat` | numgen SNAT + DSCPリセット + conntrack | mape ifup後 |
+
+起動シーケンス
+ブート
+└─ START=19 mape-patch start()
+├─ map.sh portsetループを無効化（sed）
+└─ 99-mape-snat を生成
+└─ netifd が mape ifup
+└─ 99-mape-snat 発火
+├─ numgen SNAT構築（全ポート均等分散）
+├─ DSCPリセット（CS0）
+└─ conntrackタイムアウト短縮
+
 有効・無効の切り替え
 ```sh
 /etc/init.d/mape-patch start   # 有効化（map.sh sed + hotplug生成）
