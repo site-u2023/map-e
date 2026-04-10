@@ -56,14 +56,14 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 
 起動シーケンス
 ブート
-└─ START=19 mape-patch start()
-├─ map.sh portsetループを無効化（sed）
-└─ 99-mape-snat を生成
-└─ netifd が mape ifup
-└─ 99-mape-snat 発火
-├─ numgen SNAT構築（全ポート均等分散）
-├─ DSCPリセット（CS0）
-└─ conntrackタイムアウト短縮
+ └─ START=19 mape-patch start()
+     ├─ map.sh portsetループを無効化（sed）
+     └─ 99-mape-snat を生成
+         └─ netifd が mape ifup
+             └─ 99-mape-snat 発火
+                 ├─ numgen SNAT構築（全ポート均等分散）
+                 ├─ DSCPリセット（CS0）
+                 └─ conntrackタイムアウト短縮
 
 有効・無効の切り替え
 ```sh
