@@ -68,6 +68,8 @@ wget -qO- https://raw.githubusercontent.com/openwrt/openwrt/openwrt-**.**/packag
 有効・無効の切り替え
 ```sh
 /etc/init.d/mape-patch start   # 有効化（map.sh sed + hotplug生成）
+```
+```sh
 /etc/init.d/mape-patch stop    # 無効化（hotplug削除 + nftクリーン + map.sh復元 + conntrackリストア）
 ```
 
